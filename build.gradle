@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'bullish.com'
+version '0.0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.bitcoinj:bitcoinj-core:0.16.1'
+    implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+
+test {
+    useJUnitPlatform()
+}
