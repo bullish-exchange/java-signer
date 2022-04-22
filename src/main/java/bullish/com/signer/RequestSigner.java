@@ -79,8 +79,12 @@ public class RequestSigner {
         try {
             String sig = sigBase58.substring(sigBase58.lastIndexOf("_") + 1);
             byte[] encodedSig = Base58.decode(sig);
+
             BigInteger r = new BigInteger(1, encodedSig, 1, 32);
+            checkArgument(r.signum() >= 1, "R must be positive");
             BigInteger s = new BigInteger(1, encodedSig, 33, 32);
+            checkArgument(s.signum() >= 1, "S must be positive");
+
             byte[] decoderData = R1_KEY_TYPE.getBytes();
             byte[] new_checksumData = new byte[65 + decoderData.length];
             System.arraycopy(encodedSig, 0, new_checksumData, 0, 65);
@@ -93,6 +97,10 @@ public class RequestSigner {
 
             ECDSASigner signer = new ECDSASigner();
             X9ECParameters parameters = SECNamedCurves.getByName(SECP256R1);
+
+            checkArgument(!parameters.getN().equals(r), "R cannot equal N");
+            checkArgument(!parameters.getN().equals(s), "S cannot equal N");
+
             final ECPoint point = ((BCECPublicKey) eosPublicKey.getPublicKey()).getQ();
             final ECDomainParameters ecDomainParameters = new ECDomainParameters(parameters.getCurve(), parameters.getG(), parameters.getN(), parameters.getH());
             final ECPublicKeyParameters cipherParameters = new ECPublicKeyParameters(point, ecDomainParameters);
@@ -158,6 +166,11 @@ public class RequestSigner {
     }
 
     private byte[] recoverPublicKeyFromSignature(int recId, BigInteger r, BigInteger s, byte[] message) {
+        checkArgument(r.signum() >= 1, "r must be positive");
+        checkArgument(s.signum() >= 1, "s must be positive");
+        checkArgument(!ecParamsR1.getN().equals(r), "r cannot equal n");
+        checkArgument(!ecParamsR1.getN().equals(s), "s cannot equal n");
+
         // 1.0 For j from 0 to h   (h == recId here and the loop is outside this function)
         // 1.1 Let x = r + jn
 
@@ -521,6 +534,12 @@ public class RequestSigner {
         }
 
         return pemForm.toString();
+    }
+
+    private void checkArgument(boolean condition, String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
     }
 
     static class R1PrivateKeyDecoder {
