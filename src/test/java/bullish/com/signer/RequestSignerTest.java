@@ -1,5 +1,6 @@
 package bullish.com.signer;
 
+import org.bitcoinj.core.Sha256Hash;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -8,7 +9,8 @@ public class RequestSignerTest {
     @Test
     public void testSigning() throws RuntimeException {
         RequestSigner requestSigner = new RequestSigner();
-        byte[] payload = "bass".getBytes();
+        String request = "{\"accountId\":\"222000000000000\",\"nonce\":1639393131,\"expirationTime\":1639393731,\"biometricsUsed\":false,\"sessionKey\":null}";
+        byte[] digest = Sha256Hash.hash(request.getBytes());
 
         // The private key in this test is coded into the source.
         // In production settings please retrieve the private key in a more secure manner, such as through an environment variable
@@ -18,7 +20,7 @@ public class RequestSignerTest {
         RequestSigner.EosPrivateKey privateKey = requestSigner.decodePrivateKey(privateKeyString);
         RequestSigner.EosPublicKey publicKey = requestSigner.decodePublicKey(publicKeyString);
 
-        String signature = requestSigner.signRequest(payload, privateKey, publicKey);
-        assertTrue(requestSigner.verifySignature(payload, signature, publicKey));
+        String signature = requestSigner.signRequest(digest, privateKey, publicKey);
+        assertTrue(requestSigner.verifySignature(digest, signature, publicKey));
     }
 }
